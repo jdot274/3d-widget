@@ -1,0 +1,143 @@
+/* src/homescreen/AppController.css */
+/* Styles for the app controller and navigation */
+
+.app-controller {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 999;
+  pointer-events: auto;
+}
+
+.app-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto;
+  z-index: 999;
+}
+
+.weather-ecosystem-container {
+  background-color: #000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.back-button {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 1001;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+  pointer-events: auto;
+}
+
+.back-button:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.view-toggle-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 1010;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+  pointer-events: auto !important;
+}
+
+.view-toggle-button:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.1);
+}
+
+.view-toggle-button:active {
+  transform: scale(0.95);
+}
+
+.close-home-button {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1001;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+.close-home-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#home-screen-overlay,
+#gallery-screen-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: auto;
+}
+
+/* Ensure the canvas in HomeScreen is clickable */
+.home-container canvas {
+  pointer-events: auto !important;
+}
+
+@media (max-width: 768px) {
+  .view-toggle-button {
+    bottom: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .close-home-button {
+    bottom: 10px;
+    left: 10px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+} 

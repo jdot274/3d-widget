@@ -1,0 +1,37 @@
+{
+  "globe": {
+    "radius": 100,
+    "segments": 64,
+    "rotationSpeed": 0.001,
+    "autoRotate": true
+  },
+  "camera": {
+    "fov": 40,
+    "near": 0.1,
+    "far": 1000,
+    "position": [0, 0, 200]
+  },
+  "weather": {
+    "pollInterval": 600000,
+    "minHotspotTemperature": 30
+  },
+  "effects": {
+    "bloom": {
+      "strength": 0.2,
+      "radius": 0.4,
+      "threshold": 0.85
+    },
+    "atmosphereColor": "#1a3c6b",
+    "atmosphereAltitude": 0.25
+  },
+  "flights": {
+    "arcAltitudeMultiplier": 1.2,
+    "arcDashLength": 0.4,
+    "arcDashGap": 0.2,
+    "arcAnimateTime": 2000,
+    "particlesPerArc": 5
+  },
+  "performance": {
+    "unfocusedFps": 30
+  }
+} 

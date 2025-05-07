@@ -1,0 +1,2 @@
+// This would be a binary image file.
+// Instead of creating it directly, we'll use a canvas-generated texture in the app. 

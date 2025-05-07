@@ -1,0 +1,70 @@
+/* src/homescreen/HomeScreen.css */
+/* Styles for the 3D home screen */
+
+.home-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+.home-container canvas {
+  pointer-events: auto !important;
+  touch-action: none !important;
+  cursor: grab;
+}
+
+.home-container canvas:active {
+  cursor: grabbing;
+}
+
+.home-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: white;
+  font-size: 18px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.home-overlay p {
+  font-size: 16px;
+  opacity: 0.7;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensures the Canvas can use the entire space */
+canvas {
+  display: block;
+  background: transparent !important;
+  background-color: rgba(0, 0, 0, 0) !important;
+}
+
+/* Custom cursor when hovering over interactive elements */
+canvas:hover {
+  cursor: grab;
+}
+
+/* This ensures any clickable objects inside three.js scene receive events */
+.home-container * {
+  pointer-events: auto;
+}
+
+/* Fix for mobile touch events */
+@media (pointer: coarse) {
+  .home-container canvas {
+    touch-action: none !important;
+  }
+
+  .app-container {
+    touch-action: none !important;
+  }
+} 
