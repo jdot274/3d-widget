@@ -1,0 +1,7 @@
+  return (
+    <group ref={groupRef} position={position}>
+      {/* Toggle Button */}
+      <group position={[0, 2, 0]} onClick={() => setPanelOpen(!panelOpen)}>
+        <RoundedBox args={[0.5, 0.5, 0.1]} radius={0.1}>
+          <meshPhysicalMaterial
+            color="#005FFF"

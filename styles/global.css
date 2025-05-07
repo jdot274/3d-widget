@@ -1,0 +1,73 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: rgba(0, 0, 0, 0) !important; /* Transparent background */
+}
+
+html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0) !important; /* Transparent background */
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-app-region: drag; /* Allow dragging the window */
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0) !important; /* Transparent background */
+  z-index: 9999 !important; /* Ensure visibility in front of other apps */
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0) !important; /* Transparent background */
+  z-index: 9999 !important; /* Ensure visibility in front of other apps */
+  position: relative; /* Enable z-index */
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  -webkit-app-region: drag; /* Allow dragging from canvas */
+  -webkit-user-select: none;
+  background: rgba(0, 0, 0, 0) !important; /* Transparent background */
+  z-index: 9999 !important; /* Ensure visibility in front of other apps */
+  position: relative; /* Enable z-index */
+}
+
+/* This makes the canvas non-draggable when interacting with objects */
+canvas:active {
+  -webkit-app-region: no-drag;
+}
+
+/* Ensure transparency for all elements */
+:root, :root:before, :root:after,
+html, html:before, html:after,
+body, body:before, body:after,
+#app, #app:before, #app:after,
+canvas, canvas:before, canvas:after {
+  background-color: rgba(0, 0, 0, 0) !important;
+  background: rgba(0, 0, 0, 0) !important;
+  background-image: none !important;
+  color-scheme: only light !important;
+}
+
+/* Force app to stay on top of other applications */
+html, body, #app, canvas {
+  will-change: transform; /* Hardware acceleration */
+  transform: translateZ(0); /* Force layer creation */
+} 

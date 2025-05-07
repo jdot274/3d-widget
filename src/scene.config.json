@@ -1,0 +1,17 @@
+{
+  "gridSize": 4,
+  "hoverLift": 0.15,
+  "bloom": 0.18,
+  "chipGap": 0.40,
+  "chipTransmission": 0.95,
+  "chipRoughness": 0.10,
+  "chipThickness": 0.22,
+  "shadowOpacity": 0.15,
+  "glowIntensity": 0.15,
+  "animationAmplitude": 0.015,
+  "reflectivity": 0.9,
+  "ior": 1.5,
+  "edgeSharpness": 0.9,
+  "useHDR": true,
+  "msaaSamples": 4
+} 
