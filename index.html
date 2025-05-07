@@ -4,6 +4,42 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Glass Grid Widget</title>
+    <script>
+      // Create a more comprehensive fix for the reportError._sys_config issue
+      (function() {
+        // Define the reportError object with all possible properties
+        window.reportError = window.reportError || {};
+        window.reportError._sys_config = window.reportError._sys_config || {
+          enabled: false,
+          capture: false,
+          level: "error"
+        };
+        
+        // Create a proxy to handle any future access to reportError properties
+        window.reportError = new Proxy(window.reportError, {
+          get: function(target, prop) {
+            // If the property doesn't exist, create it with a basic configuration
+            if (!(prop in target)) {
+              console.log(`Creating missing reportError property: ${prop}`);
+              target[prop] = { enabled: false };
+            }
+            return target[prop];
+          }
+        });
+        
+        // Intercept provider.js errors specifically
+        window.addEventListener('error', function(event) {
+          if (event.filename && event.filename.includes('provider.js')) {
+            console.warn('Intercepted provider.js error:', event.message);
+            event.preventDefault();
+            event.stopPropagation();
+            return true;
+          }
+        }, true);
+        
+        console.log('Enhanced reportError protection initialized');
+      })();
+    </script>
     <style>
       * {
         margin: 0;
@@ -52,5 +88,7 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!-- Home screen functionality (non-intrusive) -->
+    <!-- <script type="module" src="/src/homescreen/injectHomeScreen.jsx"></script> -->
   </body>
 </html> 

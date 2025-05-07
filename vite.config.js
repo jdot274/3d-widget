@@ -4,12 +4,32 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   // Prevent external dependencies resolution issues
   optimizeDeps: {
-    include: ['three', '@react-three/fiber', '@react-three/drei'],
+    force: true,
+    include: [
+      'three', 
+      '@react-three/fiber', 
+      '@react-three/drei',
+      '@chakra-ui/react',
+      '@emotion/react',
+      '@emotion/styled',
+      'framer-motion',
+      '@monaco-editor/react',
+      'zustand',
+      'immer'
+    ],
     exclude: []
   },
   // Fix module resolution for packages that import Three.js incorrectly
   resolve: {
-    dedupe: ['three'],
+    dedupe: [
+      'three',
+      'react',
+      'react-dom',
+      '@chakra-ui/react',
+      '@emotion/react',
+      '@emotion/styled',
+      'framer-motion'
+    ]
   },
   // Ensure builds can find required modules
   build: {
@@ -18,11 +38,11 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ['three'],
       output: {
         manualChunks: {
           three: ['three'],
           'react-three': ['@react-three/fiber', '@react-three/drei'],
+          'chakra': ['@chakra-ui/react', '@emotion/react', '@emotion/styled', 'framer-motion']
         }
       }
     }
@@ -39,6 +59,29 @@ export default defineConfig({
           };
         }
       }
+    },
+    // Add a plugin to inject the reportError._sys_config
+    {
+      name: 'inject-report-error',
+      transformIndexHtml() {
+        return [
+          {
+            tag: 'script',
+            attrs: { type: 'text/javascript' },
+            children: `
+              window.reportError = window.reportError || {};
+              window.reportError._sys_config = window.reportError._sys_config || { enabled: false };
+            `,
+            injectTo: 'head-prepend'
+          }
+        ];
+      }
     }
-  ]
+  ],
+  // Add a server configuration to handle potential CORS issues
+  server: {
+    hmr: {
+      overlay: false // Disable the HMR overlay to prevent it from triggering provider.js errors
+    }
+  }
 }); 

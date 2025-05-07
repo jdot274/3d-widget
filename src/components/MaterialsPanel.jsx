@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox, Sphere, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMaterialEditor } from '../context/MaterialEditorContext';
+import useMaterialStore from '../store/useMaterialStore';
 
 // Group materials by type
 function organizeByType(materials) {
@@ -419,21 +420,66 @@ function PreviewPanel({ material, onApply, onClose, onDelete, onSave }) {
   );
 }
 
+// Material swatch component for displaying saved materials
+function MaterialSwatch({ material, position, onSelect, isSelected }) {
+  const swatchRef = useRef();
+  
+  // Animate on hover/selection
+  useFrame(() => {
+    if (swatchRef.current) {
+      swatchRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(
+        swatchRef.current.material.emissiveIntensity,
+        isSelected ? 0.6 : 0.2,
+        0.1
+      );
+    }
+  });
+  
+  // Get preview color from material properties
+  const previewColor = material.properties?.color || '#FFFFFF';
+  
+  return (
+    <group position={position} onClick={() => onSelect(material.id)}>
+      {/* Material swatch */}
+      <RoundedBox args={[0.5, 0.5, 0.05]} radius={0.05} ref={swatchRef}>
+        <meshPhysicalMaterial
+          color={previewColor}
+          roughness={material.properties?.roughness || 0.5}
+          metalness={material.properties?.metalness || 0}
+          transmission={material.properties?.transmission || 0}
+          emissive="#FFFFFF"
+          emissiveIntensity={0.2}
+        />
+      </RoundedBox>
+      
+      {/* Material name */}
+      <Text
+        position={[0, -0.35, 0]}
+        fontSize={0.1}
+        color={isSelected ? '#FFFFFF' : '#AAAAAA'}
+        anchorX="center"
+        anchorY="middle"
+      >
+        {material.name}
+      </Text>
+    </group>
+  );
+}
+
 export default function MaterialsPanel({ position = [-5, 1, 0] }) {
   const groupRef = useRef();
   const panelRef = useRef();
-  const {
-    savedMaterials,
-    applyMaterial,
-    saveCurrentMaterial,
-    deleteSavedMaterial,
-    getCurrentMaterialValues
-  } = useMaterialEditor();
+  
+  // Get saved materials and apply material function from Zustand store
+  const savedMaterials = useMaterialStore(state => state.savedMaterials);
+  const applyMaterial = useMaterialStore(state => state.applyMaterial);
+  const saveCurrentMaterial = useMaterialStore(state => state.saveCurrentMaterial);
+  const deleteSavedMaterial = useMaterialStore(state => state.deleteSavedMaterial);
   
   const [panelOpen, setPanelOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [newMaterialName, setNewMaterialName] = useState('');
   const [materialsByType, setMaterialsByType] = useState({});
   const [previewMaterial, setPreviewMaterial] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -443,47 +489,40 @@ export default function MaterialsPanel({ position = [-5, 1, 0] }) {
     setMaterialsByType(organizeByType(savedMaterials));
   }, [savedMaterials]);
   
-  // Handle material thumbnail click
-  const handleMaterialClick = (materialId, action = 'select') => {
-    if (action === 'delete') {
-      deleteSavedMaterial(materialId);
-      if (selectedMaterial === materialId) {
+  // Handle material selection
+  const handleSelectMaterial = (materialId) => {
+    setSelectedMaterial(materialId);
+    applyMaterial(materialId);
+  };
+  
+  // Handle saving a new material
+  const handleSaveMaterial = () => {
+    if (newMaterialName.trim() !== '') {
+      saveCurrentMaterial(newMaterialName, 'custom');
+      setNewMaterialName('');
+      setShowSaveDialog(false);
+    }
+  };
+  
+  // Handle deleting a material
+  const handleDeleteMaterial = () => {
+    if (selectedMaterial) {
+      try {
+        deleteSavedMaterial(selectedMaterial);
         setSelectedMaterial(null);
+      } catch (error) {
+        console.error('Error deleting material:', error);
       }
-    } else {
-      setSelectedMaterial(materialId);
-      applyMaterial(materialId);
     }
   };
   
-  // Handle save button click
-  const handleSaveClick = () => {
-    setShowSaveModal(true);
-  };
-  
-  // Handle save material
-  const handleSaveMaterial = async (name, type) => {
-    try {
-      const newId = await saveCurrentMaterial(name, type);
-      setSelectedMaterial(newId);
-      setShowSaveModal(false);
-    } catch (error) {
-      console.error('Failed to save material:', error);
-      // In a real app, show error message to user
-    }
-  };
-  
-  // Animation for panel
+  // Small animation for floating effect
   useFrame((state) => {
     if (groupRef.current) {
-      // Float effect
       groupRef.current.position.y = position[1] + Math.sin(state.clock.getElapsedTime() * 0.5) * 0.05;
       
-      // Panel animation
+      // Animate panel opening/closing
       if (panelRef.current) {
-        const targetRotation = panelOpen ? new THREE.Euler(0, state.camera.rotation.y * 0.2, 0) : new THREE.Euler(0, 0, 0);
-        panelRef.current.rotation.y = THREE.MathUtils.lerp(panelRef.current.rotation.y, targetRotation.y, 0.05);
-        
         const targetScale = panelOpen ? 1 : 0.001;
         panelRef.current.scale.x = THREE.MathUtils.lerp(panelRef.current.scale.x, targetScale, 0.1);
         panelRef.current.scale.y = THREE.MathUtils.lerp(panelRef.current.scale.y, targetScale, 0.1);
@@ -492,64 +531,31 @@ export default function MaterialsPanel({ position = [-5, 1, 0] }) {
     }
   });
   
-  // Handle scrolling
-  const handleScroll = (direction) => {
-    const maxScroll = Math.max(0, Object.keys(materialsByType).length * 1.5 - 3);
-    if (direction === 'up' && scrollPosition > 0) {
-      setScrollPosition(Math.max(0, scrollPosition - 0.5));
-    } else if (direction === 'down' && scrollPosition < maxScroll) {
-      setScrollPosition(Math.min(maxScroll, scrollPosition + 0.5));
-    }
-  };
-  
-  // Render materials grid
-  const renderMaterialsGrid = () => {
-    const grid = [];
-    let yOffset = 0;
+  // Render material swatches in a grid
+  const renderMaterialSwatches = () => {
+    const swatches = [];
+    const itemsPerRow = 4;
+    const spacing = 0.6;
     
-    // Iterate through each material type
-    Object.entries(materialsByType).forEach(([type, materials], typeIndex) => {
-      const typeYPosition = 2 - (typeIndex * 1.5) + scrollPosition;
+    savedMaterials.forEach((material, index) => {
+      const row = Math.floor(index / itemsPerRow);
+      const col = index % itemsPerRow;
       
-      // Skip if offscreen (basic culling)
-      if (typeYPosition < -4 || typeYPosition > 4) {
-        return;
-      }
+      const x = (col - (itemsPerRow - 1) / 2) * spacing;
+      const y = -row * spacing;
       
-      // Add category header
-      grid.push(
-        <CategoryHeader 
-          key={`cat-${type}`} 
-          title={type.charAt(0).toUpperCase() + type.slice(1)} 
-          position={[0, typeYPosition, 0]} 
+      swatches.push(
+        <MaterialSwatch
+          key={material.id}
+          material={material}
+          position={[x, y, 0]}
+          onSelect={handleSelectMaterial}
+          isSelected={selectedMaterial === material.id}
         />
       );
-      
-      // Add materials in a row
-      materials.forEach((material, index) => {
-        const col = index % 3;
-        const row = Math.floor(index / 3);
-        const xPos = (col - 1) * 0.5;
-        const yPos = typeYPosition - 0.4 - (row * 0.5);
-        
-        // Skip if offscreen
-        if (yPos < -4 || yPos > 4) {
-          return;
-        }
-        
-        grid.push(
-          <MaterialThumbnail
-            key={material.id}
-            material={material}
-            position={[xPos, yPos, 0]}
-            selected={selectedMaterial === material.id}
-            onClick={handleMaterialClick}
-          />
-        );
-      });
     });
     
-    return grid;
+    return swatches;
   };
   
   // In the handlePreviewClick function
@@ -622,86 +628,126 @@ export default function MaterialsPanel({ position = [-5, 1, 0] }) {
           </Text>
         </group>
         
-        {/* Materials container */}
-        <group position={[0, 0, 0.1]}>
-          {renderMaterialsGrid()}
-        </group>
-        
-        {/* Scroll buttons */}
-        <group position={[1.5, 0, 0.1]}>
-          <RoundedBox 
-            args={[0.3, 0.3, 0.05]} 
-            radius={0.05} 
-            position={[0, 2, 0]}
-            onClick={() => handleScroll('up')}
-          >
+        {/* Save and Delete buttons */}
+        <group position={[0, 2, 0.1]}>
+          <RoundedBox args={[1, 0.3, 0.05]} radius={0.05} position={[-0.7, 0, 0]} onClick={() => setShowSaveDialog(true)}>
             <meshPhysicalMaterial
               color="#005FFF"
-              roughness={0.4}
-              opacity={0.9}
-              transparent={true}
-            />
-          </RoundedBox>
-          <Text 
-            position={[0, 2, 0.03]} 
-            fontSize={0.15}
-            color="#FFFFFF"
-          >
-            ▲
-          </Text>
-          
-          <RoundedBox 
-            args={[0.3, 0.3, 0.05]} 
-            radius={0.05} 
-            position={[0, -2, 0]}
-            onClick={() => handleScroll('down')}
-          >
-            <meshPhysicalMaterial
-              color="#005FFF"
-              roughness={0.4}
-              opacity={0.9}
-              transparent={true}
-            />
-          </RoundedBox>
-          <Text 
-            position={[0, -2, 0.03]} 
-            fontSize={0.15}
-            color="#FFFFFF"
-          >
-            ▼
-          </Text>
-        </group>
-        
-        {/* Save button */}
-        <group position={[0, -3, 0.1]} onClick={handleSaveClick}>
-          <RoundedBox args={[1.2, 0.4, 0.05]} radius={0.1}>
-            <meshPhysicalMaterial
-              color="#0066CC"
               roughness={0.4}
               metalness={0.1}
-              transmission={0.4}
-              opacity={0.9}
-              transparent={true}
-              emissive="#00AAFF"
-              emissiveIntensity={0.3}
+              emissive="#00BFFF"
+              emissiveIntensity={0.6}
             />
           </RoundedBox>
           <Text 
-            position={[0, 0, 0.03]} 
+            position={[-0.7, 0, 0.05]} 
             fontSize={0.15}
             color="#FFFFFF"
           >
-            Save Material
+            Save
+          </Text>
+          
+          <RoundedBox args={[1, 0.3, 0.05]} radius={0.05} position={[0.7, 0, 0]} onClick={handleDeleteMaterial}>
+            <meshPhysicalMaterial
+              color="#FF3050"
+              roughness={0.4}
+              metalness={0.1}
+              emissive="#FF5050"
+              emissiveIntensity={0.6}
+            />
+          </RoundedBox>
+          <Text 
+            position={[0.7, 0, 0.05]} 
+            fontSize={0.15}
+            color="#FFFFFF"
+          >
+            Delete
           </Text>
         </group>
         
-        {/* Save material modal */}
-        {showSaveModal && (
-          <group position={[0, 0, 0.5]}>
-            <SaveMaterialModal 
-              onSave={handleSaveMaterial}
-              onCancel={() => setShowSaveModal(false)}
-            />
+        {/* Material swatches */}
+        <group position={[0, 1, 0.1]}>
+          {renderMaterialSwatches()}
+        </group>
+        
+        {/* Save dialog */}
+        {showSaveDialog && (
+          <group position={[0, 0, 0.2]}>
+            <RoundedBox args={[3, 2, 0.1]} radius={0.1}>
+              <meshPhysicalMaterial
+                color="#1A2038"
+                roughness={0.7}
+                transmission={0.3}
+                opacity={0.95}
+                transparent={true}
+              />
+            </RoundedBox>
+            
+            <Text 
+              position={[0, 0.6, 0.1]} 
+              fontSize={0.2}
+              color="#FFFFFF"
+            >
+              Save Material
+            </Text>
+            
+            {/* Input field (simplified for 3D) */}
+            <RoundedBox args={[2.5, 0.4, 0.05]} radius={0.05} position={[0, 0, 0.1]}>
+              <meshPhysicalMaterial
+                color="#000020"
+                roughness={0.4}
+                metalness={0.1}
+              />
+            </RoundedBox>
+            
+            <Text 
+              position={[0, 0, 0.15]} 
+              fontSize={0.15}
+              color="#AACCFF"
+            >
+              {newMaterialName || "Enter name..."}
+            </Text>
+            
+            {/* Save and Cancel buttons */}
+            <group position={[0, -0.6, 0.1]}>
+              <RoundedBox args={[1, 0.3, 0.05]} radius={0.05} position={[-0.7, 0, 0]} onClick={handleSaveMaterial}>
+                <meshPhysicalMaterial
+                  color="#005FFF"
+                  roughness={0.4}
+                  metalness={0.1}
+                  emissive="#00BFFF"
+                  emissiveIntensity={0.6}
+                />
+              </RoundedBox>
+              <Text 
+                position={[-0.7, 0, 0.05]} 
+                fontSize={0.15}
+                color="#FFFFFF"
+              >
+                Save
+              </Text>
+              
+              <RoundedBox args={[1, 0.3, 0.05]} radius={0.05} position={[0.7, 0, 0]} onClick={() => setShowSaveDialog(false)}>
+                <meshPhysicalMaterial
+                  color="#444444"
+                  roughness={0.4}
+                  metalness={0.1}
+                  emissive="#888888"
+                  emissiveIntensity={0.6}
+                />
+              </RoundedBox>
+              <Text 
+                position={[0.7, 0, 0.05]} 
+                fontSize={0.15}
+                color="#FFFFFF"
+              >
+                Cancel
+              </Text>
+            </group>
+            
+            {/* Note: In a real 3D UI, you'd need to implement keyboard input */}
+            {/* For this demo, we'd use HTML inputs layered on top or add listeners */}
+            {/* Here we're just showing the 3D representation of the input field */}
           </group>
         )}
       </group>
@@ -713,7 +759,7 @@ export default function MaterialsPanel({ position = [-5, 1, 0] }) {
           onApply={() => handlePreviewClick(previewMaterial, 'apply')}
           onClose={() => setShowPreview(false)}
           onDelete={() => handlePreviewClick(previewMaterial, 'delete')}
-          onSave={() => setShowSaveModal(true)}
+          onSave={() => setShowSaveDialog(true)}
         />
       )}
     </group>

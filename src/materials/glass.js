@@ -48,6 +48,19 @@ export const glassMaterials = {
     opacity: 0.9,
   }),
   
+  // Silver glass with subtle blue tint (for sphere designer)
+  silverGlass: createGlassMaterial({
+    color: '#e8f0ff',
+    metalness: 0.8,
+    roughness: 0.05,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05,
+    reflectivity: 0.95,
+    envMapIntensity: 1.2,
+    transmission: 0.85,
+    opacity: 0.95,
+  }),
+  
   // macOS Foggy/Dark Glass (Frosted, Subtle, Modern)
   macOS: createGlassMaterial({
     color: '#2A2A2A',
@@ -63,6 +76,37 @@ export const glassMaterials = {
     sheen: 0.8,
     sheenColor: new THREE.Color('#FFFFFF'),
     sheenRoughness: 0.1,
+  }),
+  
+  // macOS Glass optimized for spheres
+  macOSGlass: createGlassMaterial({
+    color: '#333333',
+    metalness: 0.2,
+    roughness: 0.5,
+    transmission: 0.7,
+    opacity: 0.9,
+    ior: 1.5,
+    thickness: 0.4,
+    envMapIntensity: 0.6,
+    clearcoat: 0.4,
+    clearcoatRoughness: 0.3,
+    sheen: 0.6,
+    sheenColor: new THREE.Color('#FFFFFF'),
+    sheenRoughness: 0.2,
+  }),
+  
+  // Tinted Glass (Amber/Gold)
+  tintedGlass: createGlassMaterial({
+    color: '#FFD700',
+    metalness: 0.2,
+    roughness: 0.1,
+    transmission: 0.8,
+    opacity: 0.9,
+    ior: 1.55,
+    thickness: 0.4,
+    envMapIntensity: 0.7,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.1,
   }),
   
   // Frosted Blue Glass (Soft, Bright, iOS/Home Icon Style)

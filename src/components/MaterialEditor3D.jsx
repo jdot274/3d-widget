@@ -2,7 +2,8 @@ import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
-import { useMaterialEditor } from '../context/MaterialEditorContext';
+import useMaterialStore from '../store/useMaterialStore';
+import ShaderEditor from './ShaderEditor';
 
 // Material properties data structure
 const MATERIAL_PROPERTIES = [
@@ -13,12 +14,61 @@ const MATERIAL_PROPERTIES = [
   { name: 'Opacity', key: 'opacity', type: 'slider', min: 0, max: 1, default: 0.85 },
   { name: 'IOR', key: 'ior', type: 'slider', min: 1, max: 2.5, default: 1.45 },
   { name: 'Thickness', key: 'thickness', type: 'slider', min: 0, max: 1, default: 0.35 },
-  { name: 'EnvMap Intensity', key: 'envMapIntensity', type: 'slider', min: 0, max: 1, default: 0.4 },
+  { name: 'EnvMap Intensity', key: 'envMapIntensity', type: 'slider', min: 0, max: 2, default: 0.4 },
   { name: 'Clearcoat', key: 'clearcoat', type: 'slider', min: 0, max: 1, default: 0.15 },
   { name: 'Clearcoat Roughness', key: 'clearcoatRoughness', type: 'slider', min: 0, max: 1, default: 0.25 },
   { name: 'Emissive', key: 'emissive', type: 'color', min: 0, max: 1, default: '#ffffff' },
-  { name: 'Emissive Intensity', key: 'emissiveIntensity', type: 'slider', min: 0, max: 5, default: 0 }
+  { name: 'Emissive Intensity', key: 'emissiveIntensity', type: 'slider', min: 0, max: 5, default: 0 },
+  // New glass-specific properties
+  { name: 'Dispersion', key: 'dispersion', type: 'slider', min: 0, max: 1, default: 0.0 },
+  { name: 'Caustics Intensity', key: 'causticsIntensity', type: 'slider', min: 0, max: 1, default: 0.0 },
+  { name: 'Surface Noise', key: 'surfaceNoise', type: 'slider', min: 0, max: 1, default: 0.0 },
+  { name: 'Aberration', key: 'aberration', type: 'slider', min: 0, max: 1, default: 0.0 },
+  { name: 'Fresnel Power', key: 'fresnelPower', type: 'slider', min: 0, max: 5, default: 1.0 }
 ];
+
+// Material type-specific properties
+const MATERIAL_TYPE_PROPERTIES = {
+  'glass': [
+    'color', 'metalness', 'roughness', 'transmission', 'opacity', 'ior', 
+    'thickness', 'envMapIntensity', 'clearcoat', 'clearcoatRoughness', 
+    'emissive', 'emissiveIntensity', 'dispersion', 'causticsIntensity', 
+    'surfaceNoise', 'aberration', 'fresnelPower'
+  ],
+  'metal': [
+    'color', 'metalness', 'roughness', 'envMapIntensity', 'clearcoat',
+    'clearcoatRoughness', 'emissive', 'emissiveIntensity'
+  ],
+  'plastic': [
+    'color', 'metalness', 'roughness', 'transmission', 'opacity',
+    'envMapIntensity', 'clearcoat', 'clearcoatRoughness', 'emissive', 'emissiveIntensity'
+  ],
+  'basic': [
+    'color', 'wireframe', 'opacity', 'transparent'
+  ],
+  'standard': [
+    'color', 'metalness', 'roughness', 'envMapIntensity', 'emissive', 'emissiveIntensity'
+  ],
+  'physical': [
+    'color', 'metalness', 'roughness', 'transmission', 'opacity', 'ior',
+    'clearcoat', 'clearcoatRoughness', 'envMapIntensity', 'emissive', 'emissiveIntensity'
+  ],
+  'normal': [
+    'opacity', 'transparent', 'flatShading'
+  ],
+  'matcap': [
+    'color', 'opacity', 'transparent'
+  ],
+  'shader': [
+    'transparent', 'wireframe'
+  ],
+  'glow': [
+    'color', 'intensity', 'power', 'transparent'
+  ],
+  'gradient': [
+    'colorTop', 'colorBottom', 'exponent', 'transparent', 'opacity'
+  ]
+};
 
 // Numeric input overlay for slider values
 function NumericInputOverlay({ value, onChange, onBlur, position }) {
@@ -325,18 +375,76 @@ function ColorPicker3D({ property, value, onChange, position, selected, onSelect
   );
 }
 
+// Dropdown selector for material type
+function MaterialTypeSelector({ value, onChange, position }) {
+  const materialTypes = [
+    'glass', 'metal', 'plastic', 'basic', 'standard', 'physical',
+    'normal', 'matcap', 'shader', 'glow', 'gradient'
+  ];
+  
+  return (
+    <group position={position}>
+      <Text 
+        position={[-1.5, 0, 0]} 
+        fontSize={0.12}
+        color="#AACCFF"
+        anchorX="right"
+        anchorY="middle"
+      >
+        Material Type
+      </Text>
+      
+      {/* Current selection display */}
+      <RoundedBox 
+        args={[1.5, 0.2, 0.05]} 
+        radius={0.05}
+        position={[-0.5, 0, 0]}
+        onClick={() => {
+          // Cycle to next material type
+          const currentIndex = materialTypes.indexOf(value);
+          const nextIndex = (currentIndex + 1) % materialTypes.length;
+          onChange('materialType', materialTypes[nextIndex]);
+        }}
+      >
+        <meshPhysicalMaterial 
+          color="#2A4058"
+          roughness={0.4}
+          metalness={0.1}
+          transmission={0.1}
+          emissive="#4499FF"
+          emissiveIntensity={0.2}
+        />
+      </RoundedBox>
+      
+      <Text 
+        position={[-0.5, 0, 0.05]} 
+        fontSize={0.1}
+        color="#FFFFFF"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {value.charAt(0).toUpperCase() + value.slice(1)}
+      </Text>
+    </group>
+  );
+}
+
 export default function MaterialEditor3D({ position = [0, 0, 0] }) {
   const groupRef = useRef();
   const panelRef = useRef();
-  const {
-    getCurrentMaterialValues,
-    updateMaterialProperty,
-    selectedObject,
-    selectedLayer
-  } = useMaterialEditor();
+  const selectedObject = useMaterialStore(state => state.selectedObject);
+  const selectedLayer = useMaterialStore(state => state.selectedLayer);
+  const getCurrentMaterialValues = useMaterialStore(state => state.getCurrentMaterialValues);
+  const updateMaterialProperty = useMaterialStore(state => state.updateMaterialProperty);
+  const savedMaterials = useMaterialStore(state => state.savedMaterials);
+  
   const values = getCurrentMaterialValues();
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [showShaderEditor, setShowShaderEditor] = useState(false);
+  
+  // Get material type with fallback to 'glass'
+  const materialType = values.materialType || 'glass';
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -351,6 +459,11 @@ export default function MaterialEditor3D({ position = [0, 0, 0] }) {
       }
     }
   });
+
+  const getPropertiesForMaterialType = () => {
+    const propertyKeys = MATERIAL_TYPE_PROPERTIES[materialType] || MATERIAL_TYPE_PROPERTIES['glass'];
+    return MATERIAL_PROPERTIES.filter(prop => propertyKeys.includes(prop.key));
+  };
 
   const renderPropertyControl = (property, index) => {
     const yPos = -index * 0.25;
@@ -381,6 +494,34 @@ export default function MaterialEditor3D({ position = [0, 0, 0] }) {
       );
     }
     return null;
+  };
+
+  const updateMaterialWithGlassEffects = (values) => {
+    if (!values) return values;
+    
+    // Apply glass-specific effects
+    const dispersionEffect = values.dispersion || 0;
+    const causticsEffect = values.causticsIntensity || 0;
+    const surfaceNoiseEffect = values.surfaceNoise || 0;
+    const aberrationEffect = values.aberration || 0;
+    const fresnelEffect = values.fresnelPower || 1;
+
+    return {
+      ...values,
+      envMapIntensity: values.envMapIntensity * (1 + dispersionEffect * 0.5),
+      transmission: values.transmission * (1 - surfaceNoiseEffect * 0.3),
+      clearcoat: values.clearcoat * (1 + causticsEffect * 0.5),
+      ior: values.ior * (1 + aberrationEffect * 0.2),
+      metalness: values.metalness * (1 - fresnelEffect * 0.2)
+    };
+  };
+  
+  // When material type is shader, show shader editor
+  const handleShaderToggle = () => {
+    if (materialType === 'shader') {
+      // Toggle shader editor visibility
+      setShowShaderEditor(!showShaderEditor);
+    }
   };
 
   return (
@@ -441,29 +582,94 @@ export default function MaterialEditor3D({ position = [0, 0, 0] }) {
           </Text>
         </group>
         
+        {/* Material type selector */}
+        <MaterialTypeSelector 
+          value={materialType}
+          onChange={(key, val) => {
+            updateMaterialProperty(key, val);
+            // Reset properties when changing material type
+            if (val === 'shader') {
+              setShowShaderEditor(true);
+            }
+          }}
+          position={[0, 2.3, 0.1]}
+        />
+        
+        {/* Shader Editor Toggle for shader material type */}
+        {materialType === 'shader' && (
+          <group position={[1.5, 2.3, 0.1]} onClick={handleShaderToggle}>
+            <RoundedBox args={[0.8, 0.2, 0.05]} radius={0.05}>
+              <meshPhysicalMaterial
+                color="#4080FF"
+                roughness={0.4}
+                metalness={0.1}
+                emissive="#00BFFF"
+                emissiveIntensity={showShaderEditor ? 0.8 : 0.4}
+              />
+            </RoundedBox>
+            <Text 
+              position={[0, 0, 0.05]} 
+              fontSize={0.08}
+              color="#FFFFFF"
+            >
+              {showShaderEditor ? "Hide Editor" : "Show Editor"}
+            </Text>
+          </group>
+        )}
+        
         {/* Material preview sphere */}
         <Sphere args={[0.5, 32, 32]} position={[0, 2, 0.2]}>
           <meshPhysicalMaterial
-            color={values.color || '#6EC1FF'}
-            metalness={values.metalness !== undefined ? values.metalness : 0}
-            roughness={values.roughness !== undefined ? values.roughness : 0.55}
-            transmission={values.transmission !== undefined ? values.transmission : 0.85}
-            opacity={values.opacity !== undefined ? values.opacity : 0.85}
+            {...updateMaterialWithGlassEffects(values)}
             transparent={true}
-            ior={values.ior !== undefined ? values.ior : 1.45}
-            thickness={values.thickness !== undefined ? values.thickness : 0.35}
-            envMapIntensity={values.envMapIntensity !== undefined ? values.envMapIntensity : 0.4}
-            clearcoat={values.clearcoat !== undefined ? values.clearcoat : 0.15}
-            clearcoatRoughness={values.clearcoatRoughness !== undefined ? values.clearcoatRoughness : 0.25}
-            emissive={new THREE.Color(values.emissive || '#ffffff')}
-            emissiveIntensity={values.emissiveIntensity !== undefined ? values.emissiveIntensity : 0}
           />
         </Sphere>
         
-        {/* Controls container */}
+        {/* Properties list - conditionally render based on material type */}
         <group position={[0, 0.5, 0.1]}>
-          {MATERIAL_PROPERTIES.map(renderPropertyControl)}
+          {getPropertiesForMaterialType().map(renderPropertyControl)}
         </group>
+        
+        {/* Shader editor container */}
+        {showShaderEditor && materialType === 'shader' && (
+          <div style={{
+            position: 'fixed',
+            left: '10vw',
+            top: '10vh',
+            width: '80vw',
+            height: '80vh',
+            zIndex: 1000,
+            backgroundColor: 'rgba(20, 20, 40, 0.95)',
+            borderRadius: '8px',
+            boxShadow: '0 0 20px rgba(0, 0, 0, 0.5)',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '10px'
+            }}>
+              <h2 style={{ color: '#FFFFFF', margin: 0 }}>Shader Editor</h2>
+              <button 
+                onClick={() => setShowShaderEditor(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  fontSize: '20px',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              <ShaderEditor />
+            </div>
+          </div>
+        )}
       </group>
     </group>
   );

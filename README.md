@@ -2001,3 +2001,104 @@ This project uses Git for version control. If you're new to the project, follow 
 3. **Create feature branches** for new work instead of working directly on main
 4. **Write meaningful commit messages** that explain why changes were made
 5. **Review your changes** before committing with `git diff`
+
+### Optimal Viewport and Window Settings
+
+After extensive testing, we've identified the optimal configuration for window viewport settings in glass-grid-widget:
+
+1. **Container Elements**: Must use fixed positioning with 100vw/100vh
+   ```css
+   #home-screen-container, #gallery-screen-overlay, #home-screen-overlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100vw;
+     height: 100vh;
+     overflow: hidden;
+     z-index: 999;
+   }
+   ```
+
+2. **Proper Event Handling**: Use stopPropagation for interactive elements
+   ```javascript
+   // Button event handling to ensure events don't fall through
+   button.addEventListener('click', (e) => {
+     e.stopPropagation(); // Prevent event bubbling
+     handleAction();
+   });
+   ```
+
+3. **Layout Structure**: Use flexbox for centered content
+   ```css
+   .screen-overlay {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     width: 100vw;
+     height: 100vh;
+   }
+   ```
+
+4. **Control Z-Index Stacking**: Ensure proper component visibility
+   ```javascript
+   // Z-index hierarchy for component layers
+   mainApp: 1,           // Base application
+   homeScreenContainer: 999,  // Home screen overlay
+   navigationButtons: 1001    // Navigation controls above all content
+   ```
+
+5. **Conditional Pointer Events**: Toggle pointer events based on active view
+   ```javascript
+   // Only capture events in the current view
+   container.style.pointerEvents = currentView === 'editor' ? 'none' : 'auto';
+   ```
+
+6. **Window Configuration**: Optimal Tauri window settings
+   ```json
+   // In tauri.conf.json
+   "windows": [
+     {
+       "fullscreen": false,
+       "resizable": true,
+       "title": "Glass Grid Widget",
+       "width": 1200,
+       "height": 800,
+       "transparent": true,
+       "decorations": false
+     }
+   ]
+   ```
+
+7. **DOM Structure**: Keep DOM hierarchy clean
+   ```html
+   <body>
+     <!-- Original app container -->
+     <div id="root">...</div>
+     
+     <!-- Overlay containers (injected) -->
+     <div id="home-screen-container">...</div>
+     
+     <!-- Navigation controls (fixed positioning) -->
+     <button id="view-toggle-button">...</button>
+   </body>
+   ```
+
+8. **Multi-app Navigation**: Use isolated containers
+   ```javascript
+   // When switching between apps
+   if (appId === 'editor') {
+     document.getElementById('root').style.display = 'block';
+     document.getElementById('home-screen-container').style.pointerEvents = 'none';
+   } else if (appId === 'gallery') {
+     document.getElementById('root').style.display = 'none';
+     document.getElementById('home-screen-container').style.pointerEvents = 'auto';
+   }
+   ```
+
+### Troubleshooting Common Issues
+
+- **Buttons Not Working**: Usually caused by event propagation issues. Use `stopPropagation()` on all button handlers.
+- **Content Cut Off**: Fixed by using `position: fixed` with `width: 100vw; height: 100vh` instead of percentage-based sizing.
+- **Events Passing Through**: Set `pointerEvents: 'auto'` on active containers and `'none'` on inactive ones.
+- **Transparency Flickering**: Ensure continuous animation with `useFrame` and set proper renderer settings.
+- **Components Not Showing**: Check z-index values and make sure components are rendering to the correct container.

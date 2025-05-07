@@ -3,6 +3,7 @@ import GlassChip from './GlassChip';
 import GlowingButton from './GlowingButton';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import GlassEffectsPreview from './GlassEffectsPreview';
 // Preserving original imports as comments
 // import { useFrame } from '@react-three/fiber';
 // import { useSpring, animated } from '@react-spring/three';
@@ -171,6 +172,7 @@ export default function GlassGrid(props) {
     <group ref={groupRef} {...props}>
       {renderChips()}
       <GlowingButton position={[0, -(GRID_SIZE / 2 * GRID_SPACING) + 1.5, 0]} />
+      <GlassEffectsPreview position={[2, 0, 0]} />
     </group>
   );
 } 

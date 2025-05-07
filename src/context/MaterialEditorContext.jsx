@@ -65,6 +65,22 @@ const defaultMaterials = {
   }
 };
 
+// Material Types definition
+const MaterialTypes = {
+  GLASS: 'glass',
+  METAL: 'metal',
+  PLASTIC: 'plastic',
+  PATTERN: 'pattern',
+  BASIC: 'basic',
+  STANDARD: 'standard',
+  PHYSICAL: 'physical',
+  NORMAL: 'normal',
+  MATCAP: 'matcap',
+  SHADER: 'shader',
+  GLOW: 'glow',
+  GRADIENT: 'gradient'
+};
+
 // Preset materials
 const presetMaterials = {
   // Glass presets
@@ -118,6 +134,78 @@ const presetMaterials = {
       envMapIntensity: 0.6,
       clearcoat: 0.2,
       clearcoatRoughness: 0.2,
+      emissive: '#000000',
+      emissiveIntensity: 0
+    }
+  },
+  'crystal-glass': {
+    name: 'Crystal Glass',
+    type: 'glass',
+    properties: {
+      color: '#FFFFFF',
+      metalness: 0.1,
+      roughness: 0.05,
+      transmission: 0.98,
+      opacity: 0.95,
+      ior: 2.0,
+      thickness: 0.2,
+      envMapIntensity: 0.8,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.05,
+      emissive: '#FFFFFF',
+      emissiveIntensity: 0.05
+    }
+  },
+  'tinted-glass': {
+    name: 'Tinted Glass',
+    type: 'glass',
+    properties: {
+      color: '#2A4858',
+      metalness: 0.0,
+      roughness: 0.1,
+      transmission: 0.9,
+      opacity: 0.85,
+      ior: 1.5,
+      thickness: 0.3,
+      envMapIntensity: 0.6,
+      clearcoat: 0.4,
+      clearcoatRoughness: 0.1,
+      emissive: '#000000',
+      emissiveIntensity: 0
+    }
+  },
+  'dichroic-glass': {
+    name: 'Dichroic Glass',
+    type: 'glass',
+    properties: {
+      color: '#FF00FF',
+      metalness: 0.3,
+      roughness: 0.1,
+      transmission: 0.9,
+      opacity: 0.8,
+      ior: 1.7,
+      thickness: 0.25,
+      envMapIntensity: 1.0,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.05,
+      emissive: '#00FFFF',
+      emissiveIntensity: 0.3
+    }
+  },
+  'textured-glass': {
+    name: 'Textured Glass',
+    type: 'glass',
+    properties: {
+      color: '#FFFFFF',
+      metalness: 0.1,
+      roughness: 0.4,
+      transmission: 0.8,
+      opacity: 0.9,
+      ior: 1.5,
+      thickness: 0.4,
+      envMapIntensity: 0.5,
+      clearcoat: 0.6,
+      clearcoatRoughness: 0.3,
       emissive: '#000000',
       emissiveIntensity: 0
     }
@@ -243,6 +331,116 @@ const presetMaterials = {
       pattern: 'dots',
       dotSize: 0.03,
       dotSpacing: 0.07
+    }
+  },
+  // Basic material preset
+  'basic-red': {
+    name: 'Basic Red',
+    type: MaterialTypes.BASIC,
+    properties: {
+      color: '#FF0000',
+      wireframe: false,
+      transparent: false,
+      opacity: 1.0
+    }
+  },
+  
+  // Standard material preset
+  'standard-blue': {
+    name: 'Standard Blue',
+    type: MaterialTypes.STANDARD,
+    properties: {
+      color: '#0000FF',
+      metalness: 0.5,
+      roughness: 0.5,
+      emissive: '#000000',
+      emissiveIntensity: 0,
+      envMapIntensity: 1.0,
+      transparent: false,
+      opacity: 1.0
+    }
+  },
+  
+  // Normal material preset
+  'normal-map': {
+    name: 'Normal Map',
+    type: MaterialTypes.NORMAL,
+    properties: {
+      opacity: 1.0,
+      transparent: false,
+      flatShading: false
+    }
+  },
+  
+  // Matcap material preset
+  'matcap-gold': {
+    name: 'Gold Matcap',
+    type: MaterialTypes.MATCAP,
+    properties: {
+      color: '#FFFFFF',
+      matcap: 'matcap-gold', // This would reference a texture
+      transparent: false,
+      opacity: 1.0
+    }
+  },
+  
+  // Glow material preset
+  'neon-glow': {
+    name: 'Neon Glow',
+    type: MaterialTypes.GLOW,
+    properties: {
+      color: '#00FFFF',
+      intensity: 1.5,
+      power: 2.0,
+      transparent: true
+    }
+  },
+  
+  // Gradient material preset
+  'sunset-gradient': {
+    name: 'Sunset Gradient',
+    type: MaterialTypes.GRADIENT,
+    properties: {
+      colorTop: '#FF5500',
+      colorBottom: '#0033FF',
+      exponent: 0.5,
+      transparent: true,
+      opacity: 0.9
+    }
+  },
+  
+  // Shader material preset
+  'custom-shader': {
+    name: 'Custom Shader',
+    type: MaterialTypes.SHADER,
+    properties: {
+      vertexShader: `
+varying vec2 vUv;
+varying vec3 vNormal;
+
+void main() {
+  vUv = uv;
+  vNormal = normalize(normalMatrix * normal);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`,
+      fragmentShader: `
+uniform vec3 color;
+uniform float time;
+varying vec2 vUv;
+varying vec3 vNormal;
+
+void main() {
+  vec3 light = normalize(vec3(1.0, 1.0, 1.0));
+  float intensity = dot(vNormal, light) * 0.5 + 0.5;
+  vec3 finalColor = color * intensity;
+  finalColor += vec3(vUv.x * 0.5, vUv.y * 0.5, sin(time) * 0.5 + 0.5) * 0.2;
+  gl_FragColor = vec4(finalColor, 1.0);
+}`,
+      uniforms: {
+        color: '#00AAFF',
+        time: 0.0
+      },
+      transparent: false
     }
   }
 };
