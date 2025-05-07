@@ -221,6 +221,20 @@ const HomeScreen = ({ onLaunchApp }) => {
       description: 'Procedural Earth with weather systems and city lights',
       position: [4, -1.0, 0],
       color: '#2E86C1'
+    },
+    {
+      id: 'atmospheric-globe',
+      name: 'Atmospheric Globe',
+      description: 'Basic interactive Earth globe with clouds',
+      position: [-4, -1.0, 0], // Positioned below 3D Editor
+      color: '#4CAF50' // A green color
+    },
+    {
+      id: 'earth-widget',
+      name: 'Earth Widget',
+      description: 'Advanced Earth visualization with shader effects',
+      position: [-1.5, -1.0, 0], // Positioned below Gallery
+      color: '#E67E22' // Orange color
     }
   ];
   

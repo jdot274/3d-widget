@@ -28,8 +28,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.3",
-    "three": "^0.176.0",
-    "three-globe": "^2.42.4"
+    "three": "^0.176.0"
   },
   "devDependencies": {
     "@tauri-apps/api": "^1.5.2",

@@ -113,7 +113,7 @@ function translateDesignIntent(canvas, material) {
 }
 
 // 3D Sphere preview component
-function SpherePreview({ texture, materialProps }) {
+function SpherePreview({ /* texture, */ materialProps }) {
   const sphereRef = useRef();
   
   useFrame(() => {
@@ -126,7 +126,7 @@ function SpherePreview({ texture, materialProps }) {
     <mesh ref={sphereRef}>
       <sphereGeometry args={[2, 64, 32]} />
       <meshPhysicalMaterial
-        map={texture}
+        // map={texture} // Commented out: texture disabled for procedural lighting only
         transparent={true}
         roughness={materialProps.roughness || 0.1}
         metalness={materialProps.metalness || 0.2}
@@ -602,9 +602,7 @@ function SphericalDesigner() {
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} intensity={1} />
           <pointLight position={[-10, -10, -10]} intensity={0.5} />
-          
-          <SpherePreview texture={designTexture} materialProps={materialProps} />
-          
+          <SpherePreview /* texture={designTexture} */ materialProps={materialProps} />
           <OrbitControls enablePan={false} enableZoom={true} />
           <Environment preset="sunset" background={false} />
           <gridHelper args={[10, 10]} position={[0, -3, 0]} />

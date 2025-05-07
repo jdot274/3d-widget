@@ -5,6 +5,7 @@ import GalleryScreen from './homescreen/GalleryScreen';
 import SphericalDesignerApp from './apps/spherical-designer/SphericalDesignerApp';
 import SphericalSceneApp from './apps/spherical-scene/SphericalSceneApp';
 import EditorApp from './apps/3d-editor/EditorApp';
+import EarthWidgetApp from './apps/earth-widget/EarthWidgetApp';
 import './styles/global.css';
 
 // Main App with app switching functionality
@@ -32,6 +33,8 @@ function App() {
         return <SphericalDesignerApp onBack={handleBackToHome} />;
       case 'spherical_scene':
         return <SphericalSceneApp onBack={handleBackToHome} />;
+      case 'three-globe-earth':
+        return <EarthWidgetApp onBack={handleBackToHome} />;
       case 'home':
       default:
         return <HomeScreen onLaunchApp={handleLaunchApp} />;
