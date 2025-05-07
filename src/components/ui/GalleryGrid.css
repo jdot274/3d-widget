@@ -1,0 +1,39 @@
+/* src/components/ui/GalleryGrid.css */
+/* Styles for the gallery grid component */
+
+.gallery-section {
+  padding: 32px 24px;
+}
+
+.gallery-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  padding-left: 16px;
+  border-left: 4px solid #4A90E2;
+}
+
+.gallery-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+  margin: 0 -16px; /* Offset card margins */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gallery-grid {
+    justify-content: center;
+  }
+  
+  .gallery-title {
+    text-align: center;
+    border-left: none;
+    padding-left: 0;
+    border-bottom: 2px solid #4A90E2;
+    padding-bottom: 12px;
+  }
+} 
