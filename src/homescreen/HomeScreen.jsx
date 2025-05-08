@@ -217,10 +217,17 @@ const HomeScreen = ({ onLaunchApp }) => {
     },
     {
       id: 'three-globe-earth',
-      name: 'ThreeGlobe Earth',
-      description: 'Procedural Earth with weather systems and city lights',
-      position: [4, -1.0, 0],
-      color: '#2E86C1'
+      name: 'Earth Globe',
+      description: 'Interactive 3D Earth visualization',
+      position: [0, -1.5, 0],
+      color: '#2ECC71'
+    },
+    {
+      id: 'three-globe-earth2',
+      name: 'Earth Globe 2',
+      description: 'Alternative Earth visualization',
+      position: [4, -1.5, 0],
+      color: '#3498DB'
     },
     {
       id: 'atmospheric-globe',
@@ -235,6 +242,20 @@ const HomeScreen = ({ onLaunchApp }) => {
       description: 'Advanced Earth visualization with shader effects',
       position: [-1.5, -1.0, 0], // Positioned below Gallery
       color: '#E67E22' // Orange color
+    },
+    {
+      id: 'spline-widget',
+      name: 'Floating Glass Widget',
+      description: 'Modern floating glass sphere with dynamic effects',
+      position: [1.5, -1.0, 0], // Positioned next to Earth Widget
+      color: '#4a9eff' // Matching the widget's glow color
+    },
+    {
+      id: 'gallery2',
+      name: '3D Widget Gallery',
+      description: 'Browse all floating 3D widget scenes',
+      position: [0, -3, 0],
+      color: '#00bcd4'
     }
   ];
   
